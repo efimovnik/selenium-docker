@@ -1,31 +1,38 @@
-pipeline{
-    agent any
-
-    stages{
-        stage('Build Jar'){
-            steps{
-                sh "mvn clean package -DskipTests"
+pipeline {
+    agent none
+    stages {
+        stage('Set Docker Context') {
+            agent any
+            steps {
+                sh 'docker context use default'
             }
         }
-        stage('Build Image'){
-            steps{
-                sh "docker build -t=nikolaiefimov/selenium ."
+        stage('Build Jar') {
+            agent {
+                docker {
+                    image 'maven:3.9.3-eclipse-temurin-17-focal'
+                    args '-u root -v /tmp/m2:/root/.m2'
+                }
+            }
+            steps {
+                sh 'mvn clean package -DskipTests'
             }
         }
-        stage('Push Image'){
-            environment{
-                DOCKER_HUB=credentials('dockerhub-creds')
-            }
-            steps{
-                sh 'echo ${DOCKER_HUB_PSW} | docker login -u ${DOCKER_HUB_USR} --password-stdin'
-                sh "docker push nikolaiefimov/selenium"
+        stage('Build Image') {
+            steps {
+                script {
+                    app = docker.build('nikolaiefimov/selenium')
+                }
             }
         }
-    }
-
-    post {
-        always {
-            sh "docker logout"
+        stage('Push Image') {
+            steps {
+                script {
+                    docker.withRegistry('', 'dockerhub-creds') {
+                        app.push("latest")
+                    }
+                }
+            }
         }
     }
 }
