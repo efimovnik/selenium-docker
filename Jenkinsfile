@@ -13,9 +13,19 @@ pipeline{
             }
         }
         stage('Push Image'){
-            steps{
-                echo "docker push nikolaiefimov/selenium"
+            environment{
+                DOCKER_HUB=credentials('dokcerhub-creds')
             }
+            steps{
+                sh 'docker login -u ${DOCKER_HUB_USR} - ${DOCKER_HUB_PSW}'
+                sh "docker push nikolaiefimov/selenium"
+            }
+        }
+    }
+
+    post {
+        always {
+            sh "docker logout"
         }
     }
 }
