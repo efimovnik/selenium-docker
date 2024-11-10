@@ -17,7 +17,7 @@ pipeline{
                 DOCKER_HUB=credentials('dockerhub-creds')
             }
             steps{
-                sh 'docker login -u ${DOCKER_HUB_USR} -p ${DOCKER_HUB_PSW}'
+                sh 'echo ${DOCKER_HUB_PSW} | docker login -u ${DOCKER_HUB_USR} --password-stdin'
                 sh "docker push nikolaiefimov/selenium"
             }
         }
