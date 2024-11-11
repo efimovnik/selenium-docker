@@ -29,7 +29,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', 'dockerhub-creds') {
-                        app.push("${env.BUILD_NUMBER}")
+                        app.push("latest")
                     }
                 }
             }
